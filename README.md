@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Macasoft — Landing Page Oficial
 
-## Getting Started
+Plataforma web oficial de **Macasoft**, empresa de ingeniería de software e infraestructura cloud concebida en Río Gallegos, Santa Cruz, Patagonia Austral (51°37′S 69°13′W).
 
-First, run the development server:
+Inspirada en la resiliencia y templanza del **Macá Tobiano** (*Podiceps gallardoi*).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+---
+
+## 🎨 Identidad Visual Austral
+- **Pizarra Austral**: `#080D1A` / `#0F172A`
+- **Azul Austral**: `#0284C7` / `#0EA5E9`
+- **Cobrizo Patagónico**: `#D9531E`
+- **Rojo Rubí**: `#E11D48`
+- **Blanco Nieve**: `#F8FAFC`
+- **Tipografía**: Josefin Sans (`app/fonts/JosefinSans-Variable.ttf`) + Geist
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+├── app/
+│   ├── layout.tsx         # Metadatos, fuentes y configuración global
+│   ├── page.tsx           # Entrada principal: renderiza la Landing Page Austral
+│   └── globals.css        # Tokens de Tailwind CSS v4 y scrollbar austral
+│
+├── components/
+│   ├── HeroCards.tsx      # Tarjetas editables del Hero (textos, CTAs y métricas)
+│   └── LandingPage.tsx    # Estructura completa de la Landing Page
+│
+├── public/
+│   ├── brand/             # Logotipos y símbolos oficiales en SVG y PNG
+│   └── videos/            # Video del Macá Tobiano (100vw, uncropped)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 🚀 Inicio Rápido
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# Instalar dependencias
+npm install
 
-## Learn More
+# Servidor de desarrollo
+npm run dev
 
-To learn more about Next.js, take a look at the following resources:
+# Compilación de producción
+npm run build
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+El sitio estará disponible en [http://localhost:3000](http://localhost:3000).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## ✍️ ¿Cómo editar contenidos?
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **Tarjetas del Hero**: Abre [`components/HeroCards.tsx`](components/HeroCards.tsx) y edita directamente las constantes `defaultPrimaryCardData`, `defaultHeroFeatureCards`, o los badges.
+- **Portafolio y Secciones**: Abre [`components/LandingPage.tsx`](components/LandingPage.tsx) para ajustar los pilares de ingeniería, sistemas en producción o la narrativa territorial.

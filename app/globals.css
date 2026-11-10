@@ -1,5 +1,22 @@
 @import "tailwindcss";
 
+@theme {
+  --font-josefin: var(--font-josefin), sans-serif;
+  --font-geist: var(--font-geist-sans), sans-serif;
+  --font-mono: var(--font-geist-mono), monospace;
+
+  --color-brand-blue: #0284C7;
+  --color-brand-blue-light: #0EA5E9;
+  --color-brand-slate: #0F172A;
+  --color-brand-copper: #D9531E;
+  --color-brand-ruby: #E11D48;
+  --color-brand-white: #F8FAFC;
+}
+
+.font-josefin {
+  font-family: var(--font-josefin), "Josefin Sans", sans-serif;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -10,14 +27,15 @@ html {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0C0C0C;
+  background: #0B132B;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #262626;
+  background: #1E293B;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #FFB300;
+  background: #0284C7;
 }
+
