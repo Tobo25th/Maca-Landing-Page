@@ -3,6 +3,7 @@
 import { motion, useInView, AnimatePresence } from "framer-motion";
 import { useRef, useState, useEffect, FormEvent } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import {
   HeroCards,
   HeroSpeciesCard,
@@ -32,17 +33,17 @@ export function EditorialNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { label: "Ingeniería", href: "#ingenieria" },
-    { label: "Sistemas Robustos", href: "#sistemas" },
-    { label: "Bitácora Austral", href: "#bitacora" },
-    { label: "Contacto", href: "#contacto" },
+    { label: "Ingeniería", href: "/#ingenieria" },
+    { label: "Sistemas Robustos", href: "/#sistemas" },
+    { label: "Bitácora Austral", href: "/#bitacora" },
+    { label: "Contacto", href: "/#contacto" },
   ];
 
   return (
     <nav className="sticky top-0 z-40 bg-[#080D1A]/90 backdrop-blur-xl border-b border-slate-800/80 px-6 md:px-12 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Brand Lockup */}
-        <a href="#" className="flex items-center gap-3.5 group">
+        <Link href="/" className="flex items-center gap-3.5 group">
           <div className="relative w-36 sm:w-44 h-8">
             <Image
               src="/brand/macasoft-logo-dark.svg"
@@ -55,26 +56,26 @@ export function EditorialNavbar() {
           <span className="hidden xl:inline-block font-mono text-[10px] tracking-widest text-[#0EA5E9] bg-sky-950/60 border border-sky-500/20 px-2 py-0.5 rounded">
             51°37′S 69°13′W
           </span>
-        </a>
+        </Link>
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-8">
           {navLinks.map((item) => (
-            <a
+            <Link
               key={item.href}
               href={item.href}
               className="text-sm font-sans text-slate-300 hover:text-white transition-colors duration-200"
             >
               {item.label}
-            </a>
+            </Link>
           ))}
 
-          <a
-            href="#contacto"
+          <Link
+            href="/#contacto"
             className="text-xs font-sans font-semibold uppercase tracking-wider text-white bg-[#0284C7] hover:bg-[#0369A1] px-5 py-2.5 rounded-lg transition-colors duration-200"
           >
             Iniciar Consulta
-          </a>
+          </Link>
         </div>
 
         {/* Mobile Toggle */}
@@ -106,22 +107,22 @@ export function EditorialNavbar() {
             exit={{ height: 0, opacity: 0 }}
           >
             {navLinks.map((item) => (
-              <a
+              <Link
                 key={item.href}
                 href={item.href}
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-xl font-josefin font-bold text-slate-200 hover:text-[#0EA5E9]"
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
-            <a
-              href="#contacto"
+            <Link
+              href="/#contacto"
               onClick={() => setMobileMenuOpen(false)}
               className="bg-[#0284C7] text-white text-center py-3 rounded-lg font-semibold mt-2"
             >
               Iniciar Consulta
-            </a>
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>
@@ -508,9 +509,11 @@ export function FieldNotesSection() {
               {/* The Official Symbol SVG */}
               <div className="relative w-36 h-36 md:w-44 md:h-44 flex items-center justify-center p-3 rounded-2xl bg-[#080D1A]/70 border border-slate-800/80 shadow-inner group">
                 <div className="absolute inset-0 bg-sky-500/10 rounded-2xl blur-xl pointer-events-none" />
-                <img
+                <Image
                   src="/brand/macasoft-symbol-dark.svg"
                   alt="Símbolo Oficial de Macasoft"
+                  width={176}
+                  height={176}
                   className="relative z-10 w-full h-full object-contain drop-shadow-[0_12px_24px_rgba(2,132,199,0.3)] group-hover:scale-105 transition-transform duration-300"
                 />
               </div>
@@ -727,24 +730,54 @@ export function ConsultationTerminal() {
 export function EditorialFooter() {
   return (
     <footer className="border-t border-slate-800 bg-[#080D1A] px-6 md:px-12 py-12">
-      <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-        <div className="flex items-center gap-4">
-          <div className="relative w-28 h-7">
-            <Image
-              src="/brand/macasoft-logo-dark.svg"
-              alt="Macasoft"
-              fill
-              className="object-contain object-left"
-            />
+      <div className="max-w-7xl mx-auto space-y-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="relative w-28 h-7 block">
+              <Image
+                src="/brand/macasoft-logo-dark.svg"
+                alt="Macasoft"
+                fill
+                className="object-contain object-left"
+              />
+            </Link>
+            <span className="text-slate-500 font-mono text-xs">
+              © {new Date().getFullYear()} Macasoft S.R.L. Río Gallegos, Santa Cruz.
+            </span>
           </div>
-          <span className="text-slate-500 font-mono text-xs">
-            © {new Date().getFullYear()} Macasoft S.R.L. Río Gallegos, Santa Cruz.
-          </span>
+
+          <div className="flex flex-wrap items-center gap-5 text-xs font-mono text-slate-400">
+            <Link
+              href="/terminos"
+              className="hover:text-white transition-colors underline-offset-4 hover:underline"
+            >
+              Términos y Condiciones
+            </Link>
+            <span className="text-slate-700">·</span>
+            <Link
+              href="/#bitacora"
+              className="hover:text-white transition-colors underline-offset-4 hover:underline"
+            >
+              Filosofía Austral
+            </Link>
+            <span className="text-slate-700">·</span>
+            <Link
+              href="/#contacto"
+              className="hover:text-white transition-colors underline-offset-4 hover:underline"
+            >
+              Contacto
+            </Link>
+          </div>
         </div>
 
-        <p className="text-slate-500 font-mono text-xs tracking-wider">
-          Patagonia Austral Argentina — 51°37′56″S 69°13′08″W
-        </p>
+        <div className="pt-6 border-t border-slate-800/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs font-mono text-slate-500">
+          <p>
+            Patagonia Austral Argentina — 51°37′56″S 69°13′08″W
+          </p>
+          <p className="text-slate-400">
+            Ingeniería de software con foco en resiliencia, alta disponibilidad y código robusto.
+          </p>
+        </div>
       </div>
     </footer>
   );
