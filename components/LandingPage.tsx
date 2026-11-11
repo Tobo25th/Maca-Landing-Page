@@ -586,7 +586,7 @@ export function ConsultationTerminal() {
   const [touched, setTouched] = useState<Partial<Record<ContactField, boolean>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [lastMailtoUrl, setLastMailtoUrl] = useState<string>("");
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const scopeOptions = [
     "Sistemas Críticos & Código Robusto",
@@ -636,6 +636,7 @@ export function ConsultationTerminal() {
     const nextData = { ...formData, [field]: value };
     setFormData(nextData);
     if (submitted) setSubmitted(false);
+    if (submitError) setSubmitError(null);
     if (touched[field] || errors[field]) {
       const fieldError = validateField(field, value);
       setErrors((prev) => ({ ...prev, [field]: fieldError }));
@@ -665,6 +666,7 @@ export function ConsultationTerminal() {
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     setTouched({
       nombre: true,
       organizacion: true,
@@ -684,55 +686,81 @@ export function ConsultationTerminal() {
     const cleanEmail = formData.email.trim();
     const cleanMensaje = formData.mensaje.trim();
     const cleanScopes = selectedScopes.join(" · ");
-
     const subject = `[Consulta Técnica Macasoft] ${cleanOrg} — ${cleanNombre}`;
-    const bodyLines = [
-      "Nueva solicitud técnica desde la web de Macasoft:",
-      "--------------------------------------------------",
-      `Nombre: ${cleanNombre}`,
-      `Organización / Empresa: ${cleanOrg}`,
-      `Correo Electrónico: ${cleanEmail}`,
-      `Alcance Técnico: ${cleanScopes}`,
-      "",
-      "Desafío Técnico o Proyecto:",
-      cleanMensaje,
-      "--------------------------------------------------",
-      "Enviado desde macasoft.com.ar",
-    ];
-    const mailtoUrl = `mailto:${CONTACT_TARGET_EMAIL}?subject=${encodeURIComponent(
-      subject
-    )}&body=${encodeURIComponent(bodyLines.join("\n"))}`;
 
-    setLastMailtoUrl(mailtoUrl);
     setIsSubmitting(true);
 
     try {
-      await fetch(`https://formsubmit.co/ajax/${CONTACT_TARGET_EMAIL}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          _subject: subject,
-          nombre: cleanNombre,
-          organizacion: cleanOrg,
-          email: cleanEmail,
-          alcance_tecnico: cleanScopes,
-          mensaje: cleanMensaje,
-        }),
-      });
-    } catch {
-      // Fallback silencioso a cliente de correo mediante mailto
-    } finally {
-      if (typeof window !== "undefined") {
-        window.location.href = mailtoUrl;
+      let delivered = false;
+
+      // 1. Intento directo al endpoint local del servidor (/send-mail.php en hosting web)
+      try {
+        const localResponse = await fetch("/send-mail.php", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            nombre: cleanNombre,
+            organizacion: cleanOrg,
+            email: cleanEmail,
+            alcance_tecnico: cleanScopes,
+            mensaje: cleanMensaje,
+          }),
+        });
+
+        const contentType = localResponse.headers.get("content-type") || "";
+        if (localResponse.ok && contentType.includes("application/json")) {
+          const localResult = await localResponse.json();
+          if (localResult?.ok === true) {
+            delivered = true;
+          }
+        }
+      } catch {
+        // Si el entorno es 100% estático sin PHP, continúa al servicio de despacho HTTPS
       }
-      setIsSubmitting(false);
+
+      // 2. Despacho directo por API HTTPS hacia hola@macasoft.com.ar
+      if (!delivered) {
+        const remoteResponse = await fetch(
+          `https://formsubmit.co/ajax/${CONTACT_TARGET_EMAIL}`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Accept: "application/json",
+            },
+            body: JSON.stringify({
+              _subject: subject,
+              _replyto: cleanEmail,
+              _template: "table",
+              _captcha: "false",
+              nombre: cleanNombre,
+              organizacion: cleanOrg,
+              email: cleanEmail,
+              alcance_tecnico: cleanScopes,
+              mensaje: cleanMensaje,
+            }),
+          }
+        );
+
+        if (!remoteResponse.ok) {
+          throw new Error("Error de red al enviar el formulario");
+        }
+        delivered = true;
+      }
+
       setSubmitted(true);
       setFormData({ nombre: "", organizacion: "", email: "", mensaje: "" });
       setTouched({});
       setErrors({});
+    } catch {
+      setSubmitError(
+        "No se pudo completar el envío en este momento. Verifica tu conexión a internet e inténtalo nuevamente."
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -825,11 +853,10 @@ export function ConsultationTerminal() {
                     onBlur={() => handleFieldBlur("nombre")}
                     aria-invalid={Boolean(errors.nombre)}
                     aria-describedby={errors.nombre ? "error-nombre" : undefined}
-                    className={`w-full bg-[#0F172A] border rounded-lg px-4 py-3 text-white text-sm focus:outline-none transition-colors ${
-                      errors.nombre
+                    className={`w-full bg-[#0F172A] border rounded-lg px-4 py-3 text-white text-sm focus:outline-none transition-colors ${errors.nombre
                         ? "border-[#E11D48] focus:border-[#E11D48]"
                         : "border-slate-700 focus:border-[#0284C7]"
-                    }`}
+                      }`}
                     placeholder="Ej. Martín Gallardo"
                   />
                   {errors.nombre && (
@@ -854,11 +881,10 @@ export function ConsultationTerminal() {
                     onBlur={() => handleFieldBlur("organizacion")}
                     aria-invalid={Boolean(errors.organizacion)}
                     aria-describedby={errors.organizacion ? "error-org" : undefined}
-                    className={`w-full bg-[#0F172A] border rounded-lg px-4 py-3 text-white text-sm focus:outline-none transition-colors ${
-                      errors.organizacion
+                    className={`w-full bg-[#0F172A] border rounded-lg px-4 py-3 text-white text-sm focus:outline-none transition-colors ${errors.organizacion
                         ? "border-[#E11D48] focus:border-[#E11D48]"
                         : "border-slate-700 focus:border-[#0284C7]"
-                    }`}
+                      }`}
                     placeholder="Ej. Distribuidora Patagónica"
                   />
                   {errors.organizacion && (
@@ -885,11 +911,10 @@ export function ConsultationTerminal() {
                   onBlur={() => handleFieldBlur("email")}
                   aria-invalid={Boolean(errors.email)}
                   aria-describedby={errors.email ? "error-email" : undefined}
-                  className={`w-full bg-[#0F172A] border rounded-lg px-4 py-3 text-white text-sm focus:outline-none transition-colors ${
-                    errors.email
+                  className={`w-full bg-[#0F172A] border rounded-lg px-4 py-3 text-white text-sm focus:outline-none transition-colors ${errors.email
                       ? "border-[#E11D48] focus:border-[#E11D48]"
                       : "border-slate-700 focus:border-[#0284C7]"
-                  }`}
+                    }`}
                   placeholder="martin@empresa.com.ar"
                 />
                 {errors.email && (
@@ -914,11 +939,10 @@ export function ConsultationTerminal() {
                   onBlur={() => handleFieldBlur("mensaje")}
                   aria-invalid={Boolean(errors.mensaje)}
                   aria-describedby={errors.mensaje ? "error-msg" : undefined}
-                  className={`w-full bg-[#0F172A] border rounded-lg px-4 py-3 text-white text-sm focus:outline-none transition-colors resize-none ${
-                    errors.mensaje
+                  className={`w-full bg-[#0F172A] border rounded-lg px-4 py-3 text-white text-sm focus:outline-none transition-colors resize-none ${errors.mensaje
                       ? "border-[#E11D48] focus:border-[#E11D48]"
                       : "border-slate-700 focus:border-[#0284C7]"
-                  }`}
+                    }`}
                   placeholder="Describe el flujo actual, volumen de datos o arquitectura esperada..."
                 />
                 {errors.mensaje && (
@@ -934,23 +958,20 @@ export function ConsultationTerminal() {
                 </div>
               )}
 
+              {submitError && (
+                <div className="p-3.5 rounded-lg bg-[#E11D48]/10 border border-[#E11D48]/40 text-xs font-mono text-rose-300" role="alert">
+                  {submitError}
+                </div>
+              )}
+
               {submitted && (
-                <div className="p-4 rounded-lg bg-emerald-950/40 border border-emerald-500/40 text-xs font-mono text-emerald-300 space-y-2" role="status">
+                <div className="p-4 rounded-lg bg-emerald-950/40 border border-emerald-500/40 text-xs font-mono text-emerald-300 space-y-1.5" role="status">
                   <p className="font-semibold text-emerald-200">
-                    ✓ Solicitud preparada y enviada a {CONTACT_TARGET_EMAIL}
+                    ✓ Solicitud técnica enviada directamente a {CONTACT_TARGET_EMAIL}
                   </p>
-                  {lastMailtoUrl && (
-                    <p className="text-slate-300">
-                      Si tu cliente de correo no se abrió automáticamente, puedes{" "}
-                      <a
-                        href={lastMailtoUrl}
-                        className="text-[#0EA5E9] underline underline-offset-4 hover:text-white"
-                      >
-                        enviar el correo directamente aquí
-                      </a>
-                      .
-                    </p>
-                  )}
+                  <p className="text-slate-300">
+                    Hemos recibido tus datos y parámetros técnicos. Nuestro equipo se pondrá en contacto a la brevedad.
+                  </p>
                 </div>
               )}
 
