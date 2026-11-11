@@ -3,9 +3,20 @@ import Link from "next/link";
 import { EditorialNavbar, EditorialFooter } from "@/components/LandingPage";
 
 export const metadata: Metadata = {
-  title: "Términos y Condiciones — Macasoft",
+  title: "Términos y Condiciones Generales",
   description:
-    "Términos y condiciones generales de servicio, licenciamiento de software y acuerdos de nivel operativo de Macasoft. Río Gallegos, Santa Cruz.",
+    "Términos y condiciones generales de servicio, licenciamiento de software, SLA y acuerdos de nivel operativo de Macasoft en Río Gallegos, Santa Cruz, Patagonia Argentina.",
+  alternates: {
+    canonical: "/terminos",
+  },
+  openGraph: {
+    title: "Términos y Condiciones Generales | Macasoft",
+    description:
+      "Marco legal, propiedad intelectual, acuerdos de nivel de servicio (SLA) y licenciamiento de software de Macasoft.",
+    url: "https://macasoft.com.ar/terminos",
+    type: "article",
+    locale: "es_AR",
+  },
 };
 
 const termsSections = [

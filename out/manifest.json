@@ -1,0 +1,28 @@
+{
+  "name": "Macasoft — Ingeniería de Software desde la Patagonia Austral",
+  "short_name": "Macasoft",
+  "description": "Desarrollo de software a medida, sistemas críticos de código robusto, plataformas B2B y sistemas POS Offline-First (Ventus) desde Río Gallegos, Santa Cruz, Patagonia Argentina.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#080D1A",
+  "theme_color": "#080D1A",
+  "lang": "es-AR",
+  "icons": [
+    {
+      "src": "/brand/macasoft-symbol-color-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/brand/macasoft-symbol-color-1024.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
+    },
+    {
+      "src": "/brand/macasoft-symbol-color.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
+

@@ -40,7 +40,7 @@ export function EditorialNavbar() {
   ];
 
   return (
-    <nav className="sticky top-0 z-40 bg-[#080D1A]/90 backdrop-blur-xl border-b border-slate-800/80 px-6 md:px-12 py-4">
+    <nav aria-label="Navegación principal" className="sticky top-0 z-40 bg-[#080D1A]/90 backdrop-blur-xl border-b border-slate-800/80 px-6 md:px-12 py-4">
       <div className="max-w-7xl mx-auto flex items-center justify-between">
         {/* Brand Lockup */}
         <Link href="/" className="flex items-center gap-3.5 group">
@@ -167,7 +167,7 @@ export function HeroWithIntegratedVideo() {
   };
 
   return (
-    <section className="relative w-full min-h-[90vh] lg:min-h-[94vh] flex flex-col justify-between pt-5 pb-10 px-6 md:px-12 overflow-hidden border-b border-slate-800/80 bg-[#080D1A]">
+    <section id="inicio" aria-label="Presentación principal de Macasoft" className="relative w-full min-h-[90vh] lg:min-h-[94vh] flex flex-col justify-between pt-5 pb-10 px-6 md:px-12 overflow-hidden border-b border-slate-800/80 bg-[#080D1A]">
       {/* 100vw Full-Width Video Background Layer */}
       <div className="absolute inset-0 w-full h-full overflow-hidden z-0 pointer-events-none">
         <video
@@ -295,13 +295,13 @@ export function EngineeringPillars() {
   ];
 
   return (
-    <section id="ingenieria" ref={ref} className="py-24 md:py-32 px-6 md:px-12 bg-[#080D1A] border-t border-slate-800/80">
+    <section id="ingenieria" aria-labelledby="heading-ingenieria" ref={ref} className="py-24 md:py-32 px-6 md:px-12 bg-[#080D1A] border-t border-slate-800/80">
       <div className="max-w-7xl mx-auto">
         <div className="max-w-3xl mx-auto mb-16 space-y-4 text-center">
           <span className="font-mono text-xs uppercase tracking-widest text-[#0EA5E9] font-semibold block">
             Metodología de Desarrollo
           </span>
-          <h2 className="font-josefin font-bold text-3xl md:text-5xl text-[#F8FAFC] tracking-tight leading-tight">
+          <h2 id="heading-ingenieria" className="font-josefin font-bold text-3xl md:text-5xl text-[#F8FAFC] tracking-tight leading-tight">
             Pilares de ingeniería con foco en robustez antes que ornamentación.
           </h2>
         </div>
@@ -370,13 +370,13 @@ const proprietarySystems = [
 
 export function SystemsDossier() {
   return (
-    <section id="sistemas" className="py-24 md:py-32 px-6 md:px-12 bg-[#0F172A] border-t border-slate-800">
+    <section id="sistemas" aria-labelledby="heading-sistemas" className="py-24 md:py-32 px-6 md:px-12 bg-[#0F172A] border-t border-slate-800">
       <div className="max-w-7xl mx-auto space-y-12">
         <div className="max-w-3xl mx-auto space-y-4 text-center">
           <span className="font-mono text-xs uppercase tracking-widest text-[#D9531E] font-semibold block">
             Portafolio de Sistemas
           </span>
-          <h2 className="font-josefin font-bold text-3xl md:text-5xl text-white tracking-tight leading-tight">
+          <h2 id="heading-sistemas" className="font-josefin font-bold text-3xl md:text-5xl text-white tracking-tight leading-tight">
             Plataformas desarrolladas para entornos reales.
           </h2>
           <p className="text-slate-300 text-base md:text-lg font-light">
@@ -465,7 +465,7 @@ export function SystemsDossier() {
 
 export function FieldNotesSection() {
   return (
-    <section id="bitacora" className="py-24 md:py-32 px-6 md:px-12 bg-[#080D1A] border-t border-slate-800 relative overflow-hidden">
+    <section id="bitacora" aria-labelledby="heading-bitacora" className="py-24 md:py-32 px-6 md:px-12 bg-[#080D1A] border-t border-slate-800 relative overflow-hidden">
       {/* Ambient background glow */}
       <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 bg-sky-500/5 rounded-full blur-3xl pointer-events-none" />
 
@@ -477,7 +477,7 @@ export function FieldNotesSection() {
               <span className="font-mono text-xs uppercase tracking-widest text-[#0EA5E9] font-semibold">
                 Territorio & Filosofía de Ingeniería
               </span>
-              <h2 className="font-josefin font-bold text-3xl md:text-5xl text-white tracking-tight leading-tight">
+              <h2 id="heading-bitacora" className="font-josefin font-bold text-3xl md:text-5xl text-white tracking-tight leading-tight">
                 La Patagonia como estándar de resiliencia de software.
               </h2>
             </div>
@@ -767,13 +767,13 @@ export function ConsultationTerminal() {
   const hasErrors = Object.values(errors).some(Boolean);
 
   return (
-    <section id="contacto" className="py-24 md:py-32 px-6 md:px-12 bg-[#0F172A] border-t border-slate-800">
+    <section id="contacto" aria-labelledby="heading-contacto" className="py-24 md:py-32 px-6 md:px-12 bg-[#0F172A] border-t border-slate-800">
       <div className="max-w-7xl mx-auto space-y-12">
         <div className="max-w-3xl space-y-4">
           <span className="font-mono text-xs uppercase tracking-widest text-[#0EA5E9] font-semibold">
             Consulta de Ingeniería
           </span>
-          <h2 className="font-josefin font-bold text-3xl md:text-5xl text-white tracking-tight leading-tight">
+          <h2 id="heading-contacto" className="font-josefin font-bold text-3xl md:text-5xl text-white tracking-tight leading-tight">
             Inicia un requerimiento o evaluación arquitectónica.
           </h2>
           <p className="text-slate-300 text-base">
@@ -854,8 +854,8 @@ export function ConsultationTerminal() {
                     aria-invalid={Boolean(errors.nombre)}
                     aria-describedby={errors.nombre ? "error-nombre" : undefined}
                     className={`w-full bg-[#0F172A] border rounded-lg px-4 py-3 text-white text-sm focus:outline-none transition-colors ${errors.nombre
-                        ? "border-[#E11D48] focus:border-[#E11D48]"
-                        : "border-slate-700 focus:border-[#0284C7]"
+                      ? "border-[#E11D48] focus:border-[#E11D48]"
+                      : "border-slate-700 focus:border-[#0284C7]"
                       }`}
                     placeholder="Ej. Martín Gallardo"
                   />
@@ -882,8 +882,8 @@ export function ConsultationTerminal() {
                     aria-invalid={Boolean(errors.organizacion)}
                     aria-describedby={errors.organizacion ? "error-org" : undefined}
                     className={`w-full bg-[#0F172A] border rounded-lg px-4 py-3 text-white text-sm focus:outline-none transition-colors ${errors.organizacion
-                        ? "border-[#E11D48] focus:border-[#E11D48]"
-                        : "border-slate-700 focus:border-[#0284C7]"
+                      ? "border-[#E11D48] focus:border-[#E11D48]"
+                      : "border-slate-700 focus:border-[#0284C7]"
                       }`}
                     placeholder="Ej. Distribuidora Patagónica"
                   />
@@ -912,8 +912,8 @@ export function ConsultationTerminal() {
                   aria-invalid={Boolean(errors.email)}
                   aria-describedby={errors.email ? "error-email" : undefined}
                   className={`w-full bg-[#0F172A] border rounded-lg px-4 py-3 text-white text-sm focus:outline-none transition-colors ${errors.email
-                      ? "border-[#E11D48] focus:border-[#E11D48]"
-                      : "border-slate-700 focus:border-[#0284C7]"
+                    ? "border-[#E11D48] focus:border-[#E11D48]"
+                    : "border-slate-700 focus:border-[#0284C7]"
                     }`}
                   placeholder="martin@empresa.com.ar"
                 />
@@ -940,8 +940,8 @@ export function ConsultationTerminal() {
                   aria-invalid={Boolean(errors.mensaje)}
                   aria-describedby={errors.mensaje ? "error-msg" : undefined}
                   className={`w-full bg-[#0F172A] border rounded-lg px-4 py-3 text-white text-sm focus:outline-none transition-colors resize-none ${errors.mensaje
-                      ? "border-[#E11D48] focus:border-[#E11D48]"
-                      : "border-slate-700 focus:border-[#0284C7]"
+                    ? "border-[#E11D48] focus:border-[#E11D48]"
+                    : "border-slate-700 focus:border-[#0284C7]"
                     }`}
                   placeholder="Describe el flujo actual, volumen de datos o arquitectura esperada..."
                 />
@@ -1013,7 +1013,7 @@ export function EditorialFooter() {
               />
             </Link>
             <span className="text-slate-500 font-mono text-xs">
-              © {new Date().getFullYear()} Macasoft S.R.L. Río Gallegos, Santa Cruz.
+              © {new Date().getFullYear()} Macasoft Río Gallegos, Santa Cruz.
             </span>
           </div>
 
