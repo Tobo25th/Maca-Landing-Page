@@ -547,6 +547,31 @@ export function FieldNotesSection() {
    TECHNICAL CONSULTATION TERMINAL (REPLACES 3-INPUT FORM)
    ───────────────────────────────────────────── */
 
+type ContactField = "nombre" | "organizacion" | "email" | "mensaje";
+type ContactErrors = Partial<Record<ContactField | "scopes", string>>;
+
+const CONTACT_TARGET_EMAIL = "hola@macasoft.com.ar";
+
+function isValidEmailAddress(raw: string): boolean {
+  const email = raw.trim();
+  if (!email || email.length > 254 || email.includes(" ") || email.includes("..")) {
+    return false;
+  }
+  const parts = email.split("@");
+  if (parts.length !== 2) return false;
+  const [local, domain] = parts;
+  if (!local || !domain || local.length > 64) return false;
+  if (local.startsWith(".") || local.endsWith(".") || domain.startsWith(".") || domain.endsWith(".")) {
+    return false;
+  }
+  const emailRegex =
+    /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+$/;
+  if (!emailRegex.test(email)) return false;
+  const domainSegments = domain.split(".");
+  const tld = domainSegments[domainSegments.length - 1];
+  return Boolean(tld && /^[a-zA-Z]{2,24}$/.test(tld));
+}
+
 export function ConsultationTerminal() {
   const [selectedScopes, setSelectedScopes] = useState<string[]>([
     "Sistemas Críticos & Código Robusto",
@@ -557,7 +582,11 @@ export function ConsultationTerminal() {
     email: "",
     mensaje: "",
   });
+  const [errors, setErrors] = useState<ContactErrors>({});
+  const [touched, setTouched] = useState<Partial<Record<ContactField, boolean>>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [lastMailtoUrl, setLastMailtoUrl] = useState<string>("");
 
   const scopeOptions = [
     "Sistemas Críticos & Código Robusto",
@@ -565,22 +594,149 @@ export function ConsultationTerminal() {
     "Auditoría Técnica, Latencia & Seguridad",
   ];
 
-  const toggleScope = (scope: string) => {
-    if (selectedScopes.includes(scope)) {
-      if (selectedScopes.length > 1) {
-        setSelectedScopes(selectedScopes.filter((s) => s !== scope));
-      }
-    } else {
-      setSelectedScopes([...selectedScopes, scope]);
+  const validateField = (field: ContactField, value: string): string | undefined => {
+    const trimmed = value.trim();
+    switch (field) {
+      case "nombre":
+        if (!trimmed) return "El nombre es obligatorio y no puede estar vacío.";
+        if (trimmed.length < 2) return "Ingresa un nombre válido (mínimo 2 caracteres).";
+        return undefined;
+      case "organizacion":
+        if (!trimmed) return "La organización o empresa es obligatoria.";
+        if (trimmed.length < 2) return "Ingresa un nombre de organización válido (mínimo 2 caracteres).";
+        return undefined;
+      case "email":
+        if (!trimmed) return "El correo electrónico es obligatorio.";
+        if (!isValidEmailAddress(trimmed)) {
+          return "Ingresa una dirección de correo electrónico válida (ej. nombre@empresa.com.ar).";
+        }
+        return undefined;
+      case "mensaje":
+        if (!trimmed) return "La descripción del desafío o proyecto no puede estar vacía.";
+        if (trimmed.length < 10) {
+          return "Describe brevemente el proyecto o requerimiento (mínimo 10 caracteres).";
+        }
+        return undefined;
     }
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    setSubmitted(true);
-    setTimeout(() => setSubmitted(false), 4000);
-    setFormData({ nombre: "", organizacion: "", email: "", mensaje: "" });
+  const validateForm = (data = formData, scopes = selectedScopes): ContactErrors => {
+    const nextErrors: ContactErrors = {};
+    (Object.keys(data) as ContactField[]).forEach((field) => {
+      const error = validateField(field, data[field]);
+      if (error) nextErrors[field] = error;
+    });
+    if (scopes.length === 0) {
+      nextErrors.scopes = "Selecciona al menos un alcance técnico.";
+    }
+    return nextErrors;
   };
+
+  const handleFieldChange = (field: ContactField, value: string) => {
+    const nextData = { ...formData, [field]: value };
+    setFormData(nextData);
+    if (submitted) setSubmitted(false);
+    if (touched[field] || errors[field]) {
+      const fieldError = validateField(field, value);
+      setErrors((prev) => ({ ...prev, [field]: fieldError }));
+    }
+  };
+
+  const handleFieldBlur = (field: ContactField) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    const fieldError = validateField(field, formData[field]);
+    setErrors((prev) => ({ ...prev, [field]: fieldError }));
+  };
+
+  const toggleScope = (scope: string) => {
+    let nextScopes = selectedScopes;
+    if (selectedScopes.includes(scope)) {
+      if (selectedScopes.length > 1) {
+        nextScopes = selectedScopes.filter((s) => s !== scope);
+      }
+    } else {
+      nextScopes = [...selectedScopes, scope];
+    }
+    setSelectedScopes(nextScopes);
+    if (nextScopes.length > 0 && errors.scopes) {
+      setErrors((prev) => ({ ...prev, scopes: undefined }));
+    }
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setTouched({
+      nombre: true,
+      organizacion: true,
+      email: true,
+      mensaje: true,
+    });
+
+    const validationErrors = validateForm(formData, selectedScopes);
+    setErrors(validationErrors);
+
+    if (Object.keys(validationErrors).length > 0) {
+      return;
+    }
+
+    const cleanNombre = formData.nombre.trim();
+    const cleanOrg = formData.organizacion.trim();
+    const cleanEmail = formData.email.trim();
+    const cleanMensaje = formData.mensaje.trim();
+    const cleanScopes = selectedScopes.join(" · ");
+
+    const subject = `[Consulta Técnica Macasoft] ${cleanOrg} — ${cleanNombre}`;
+    const bodyLines = [
+      "Nueva solicitud técnica desde la web de Macasoft:",
+      "--------------------------------------------------",
+      `Nombre: ${cleanNombre}`,
+      `Organización / Empresa: ${cleanOrg}`,
+      `Correo Electrónico: ${cleanEmail}`,
+      `Alcance Técnico: ${cleanScopes}`,
+      "",
+      "Desafío Técnico o Proyecto:",
+      cleanMensaje,
+      "--------------------------------------------------",
+      "Enviado desde macasoft.com.ar",
+    ];
+    const mailtoUrl = `mailto:${CONTACT_TARGET_EMAIL}?subject=${encodeURIComponent(
+      subject
+    )}&body=${encodeURIComponent(bodyLines.join("\n"))}`;
+
+    setLastMailtoUrl(mailtoUrl);
+    setIsSubmitting(true);
+
+    try {
+      await fetch(`https://formsubmit.co/ajax/${CONTACT_TARGET_EMAIL}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          _subject: subject,
+          nombre: cleanNombre,
+          organizacion: cleanOrg,
+          email: cleanEmail,
+          alcance_tecnico: cleanScopes,
+          mensaje: cleanMensaje,
+        }),
+      });
+    } catch {
+      // Fallback silencioso a cliente de correo mediante mailto
+    } finally {
+      if (typeof window !== "undefined") {
+        window.location.href = mailtoUrl;
+      }
+      setIsSubmitting(false);
+      setSubmitted(true);
+      setFormData({ nombre: "", organizacion: "", email: "", mensaje: "" });
+      setTouched({});
+      setErrors({});
+    }
+  };
+
+  const hasErrors = Object.values(errors).some(Boolean);
 
   return (
     <section id="contacto" className="py-24 md:py-32 px-6 md:px-12 bg-[#0F172A] border-t border-slate-800">
@@ -623,13 +779,18 @@ export function ConsultationTerminal() {
                   );
                 })}
               </div>
+              {errors.scopes && (
+                <p className="text-xs font-mono text-[#E11D48]" role="alert">
+                  {errors.scopes}
+                </p>
+              )}
             </div>
 
             <div className="p-6 rounded-2xl bg-[#080D1A] border border-slate-800 space-y-4 text-xs font-mono">
               <div>
                 <span className="text-slate-500 uppercase block mb-1">Correo Directo</span>
-                <a href="mailto:hola@macasoft.com.ar" className="text-base font-sans text-white hover:text-[#0EA5E9]">
-                  hola@macasoft.com.ar
+                <a href={`mailto:${CONTACT_TARGET_EMAIL}`} className="text-base font-sans text-white hover:text-[#0EA5E9]">
+                  {CONTACT_TARGET_EMAIL}
                 </a>
               </div>
               <div className="pt-3 border-t border-slate-800">
@@ -645,75 +806,164 @@ export function ConsultationTerminal() {
           <div className="lg:col-span-7">
             <form
               onSubmit={handleSubmit}
+              noValidate
               className="p-8 md:p-10 rounded-2xl bg-[#080D1A] border border-slate-800 space-y-6 shadow-xl"
             >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div>
                   <label htmlFor="form-nombre" className="font-mono text-xs uppercase tracking-wider text-slate-300 block mb-2">
-                    Tu Nombre
+                    Tu Nombre <span className="text-[#0EA5E9]">*</span>
                   </label>
                   <input
                     id="form-nombre"
+                    name="nombre"
                     type="text"
                     required
+                    minLength={2}
                     value={formData.nombre}
-                    onChange={(e) => setFormData({ ...formData, nombre: e.target.value })}
-                    className="w-full bg-[#0F172A] border border-slate-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-[#0284C7] transition-colors"
+                    onChange={(e) => handleFieldChange("nombre", e.target.value)}
+                    onBlur={() => handleFieldBlur("nombre")}
+                    aria-invalid={Boolean(errors.nombre)}
+                    aria-describedby={errors.nombre ? "error-nombre" : undefined}
+                    className={`w-full bg-[#0F172A] border rounded-lg px-4 py-3 text-white text-sm focus:outline-none transition-colors ${
+                      errors.nombre
+                        ? "border-[#E11D48] focus:border-[#E11D48]"
+                        : "border-slate-700 focus:border-[#0284C7]"
+                    }`}
                     placeholder="Ej. Martín Gallardo"
                   />
+                  {errors.nombre && (
+                    <p id="error-nombre" className="mt-1.5 text-xs font-mono text-[#E11D48]" role="alert">
+                      {errors.nombre}
+                    </p>
+                  )}
                 </div>
 
                 <div>
                   <label htmlFor="form-org" className="font-mono text-xs uppercase tracking-wider text-slate-300 block mb-2">
-                    Organización o Empresa
+                    Organización o Empresa <span className="text-[#0EA5E9]">*</span>
                   </label>
                   <input
                     id="form-org"
+                    name="organizacion"
                     type="text"
                     required
+                    minLength={2}
                     value={formData.organizacion}
-                    onChange={(e) => setFormData({ ...formData, organizacion: e.target.value })}
-                    className="w-full bg-[#0F172A] border border-slate-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-[#0284C7] transition-colors"
+                    onChange={(e) => handleFieldChange("organizacion", e.target.value)}
+                    onBlur={() => handleFieldBlur("organizacion")}
+                    aria-invalid={Boolean(errors.organizacion)}
+                    aria-describedby={errors.organizacion ? "error-org" : undefined}
+                    className={`w-full bg-[#0F172A] border rounded-lg px-4 py-3 text-white text-sm focus:outline-none transition-colors ${
+                      errors.organizacion
+                        ? "border-[#E11D48] focus:border-[#E11D48]"
+                        : "border-slate-700 focus:border-[#0284C7]"
+                    }`}
                     placeholder="Ej. Distribuidora Patagónica"
                   />
+                  {errors.organizacion && (
+                    <p id="error-org" className="mt-1.5 text-xs font-mono text-[#E11D48]" role="alert">
+                      {errors.organizacion}
+                    </p>
+                  )}
                 </div>
               </div>
 
               <div>
                 <label htmlFor="form-email" className="font-mono text-xs uppercase tracking-wider text-slate-300 block mb-2">
-                  Correo Electrónico
+                  Correo Electrónico <span className="text-[#0EA5E9]">*</span>
                 </label>
                 <input
                   id="form-email"
+                  name="email"
                   type="email"
+                  inputMode="email"
+                  autoComplete="email"
                   required
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full bg-[#0F172A] border border-slate-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-[#0284C7] transition-colors"
+                  onChange={(e) => handleFieldChange("email", e.target.value)}
+                  onBlur={() => handleFieldBlur("email")}
+                  aria-invalid={Boolean(errors.email)}
+                  aria-describedby={errors.email ? "error-email" : undefined}
+                  className={`w-full bg-[#0F172A] border rounded-lg px-4 py-3 text-white text-sm focus:outline-none transition-colors ${
+                    errors.email
+                      ? "border-[#E11D48] focus:border-[#E11D48]"
+                      : "border-slate-700 focus:border-[#0284C7]"
+                  }`}
                   placeholder="martin@empresa.com.ar"
                 />
+                {errors.email && (
+                  <p id="error-email" className="mt-1.5 text-xs font-mono text-[#E11D48]" role="alert">
+                    {errors.email}
+                  </p>
+                )}
               </div>
 
               <div>
                 <label htmlFor="form-msg" className="font-mono text-xs uppercase tracking-wider text-slate-300 block mb-2">
-                  Desafío Técnico o Proyecto
+                  Desafío Técnico o Proyecto <span className="text-[#0EA5E9]">*</span>
                 </label>
                 <textarea
                   id="form-msg"
+                  name="mensaje"
                   required
+                  minLength={10}
                   rows={4}
                   value={formData.mensaje}
-                  onChange={(e) => setFormData({ ...formData, mensaje: e.target.value })}
-                  className="w-full bg-[#0F172A] border border-slate-700 rounded-lg px-4 py-3 text-white text-sm focus:outline-none focus:border-[#0284C7] transition-colors resize-none"
+                  onChange={(e) => handleFieldChange("mensaje", e.target.value)}
+                  onBlur={() => handleFieldBlur("mensaje")}
+                  aria-invalid={Boolean(errors.mensaje)}
+                  aria-describedby={errors.mensaje ? "error-msg" : undefined}
+                  className={`w-full bg-[#0F172A] border rounded-lg px-4 py-3 text-white text-sm focus:outline-none transition-colors resize-none ${
+                    errors.mensaje
+                      ? "border-[#E11D48] focus:border-[#E11D48]"
+                      : "border-slate-700 focus:border-[#0284C7]"
+                  }`}
                   placeholder="Describe el flujo actual, volumen de datos o arquitectura esperada..."
                 />
+                {errors.mensaje && (
+                  <p id="error-msg" className="mt-1.5 text-xs font-mono text-[#E11D48]" role="alert">
+                    {errors.mensaje}
+                  </p>
+                )}
               </div>
+
+              {hasErrors && (
+                <div className="p-3.5 rounded-lg bg-[#E11D48]/10 border border-[#E11D48]/40 text-xs font-mono text-rose-300" role="alert">
+                  Verifica los campos marcados antes de enviar la solicitud a {CONTACT_TARGET_EMAIL}.
+                </div>
+              )}
+
+              {submitted && (
+                <div className="p-4 rounded-lg bg-emerald-950/40 border border-emerald-500/40 text-xs font-mono text-emerald-300 space-y-2" role="status">
+                  <p className="font-semibold text-emerald-200">
+                    ✓ Solicitud preparada y enviada a {CONTACT_TARGET_EMAIL}
+                  </p>
+                  {lastMailtoUrl && (
+                    <p className="text-slate-300">
+                      Si tu cliente de correo no se abrió automáticamente, puedes{" "}
+                      <a
+                        href={lastMailtoUrl}
+                        className="text-[#0EA5E9] underline underline-offset-4 hover:text-white"
+                      >
+                        enviar el correo directamente aquí
+                      </a>
+                      .
+                    </p>
+                  )}
+                </div>
+              )}
 
               <button
                 type="submit"
-                className="w-full bg-[#0284C7] hover:bg-[#0369A1] text-white font-sans text-sm font-semibold tracking-wide py-4 rounded-lg transition-colors cursor-pointer"
+                disabled={isSubmitting}
+                className="w-full bg-[#0284C7] hover:bg-[#0369A1] disabled:opacity-60 disabled:cursor-not-allowed text-white font-sans text-sm font-semibold tracking-wide py-4 rounded-lg transition-colors cursor-pointer"
               >
-                {submitted ? "✓ Requerimiento recibido · Evaluaremos los parámetros técnicos" : "Enviar Solicitud Técnica"}
+                {isSubmitting
+                  ? "Enviando solicitud a hola@macasoft.com.ar..."
+                  : submitted
+                    ? "✓ Requerimiento enviado a hola@macasoft.com.ar"
+                    : "Enviar Solicitud Técnica"}
               </button>
             </form>
           </div>
